@@ -1,0 +1,42 @@
+# ====================================================================
+# PYTHON & COMPILATION RACKS
+# ====================================================================
+# Loại bỏ bộ nhớ đệm khi Python chạy (Tránh làm rác mã nguồn)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ====================================================================
+# ENVIRONMENT & VIRTUAL ENVIRONMENT 
+# ====================================================================
+# Không đưa thư mục môi trường ảo lên GitHub vì nó rất nặng và chứa thư viện cục bộ
+.venv/
+venv/
+ENV/
+env/
+
+# ====================================================================
+# IDE & EDITORS CONFIGURATIONS
+# ====================================================================
+# Cấu hình riêng của các trình soạn thảo (VS Code, PyCharm, v.v.)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# ====================================================================
+# OPERATING SYSTEM FILES
+# ====================================================================
+# File tạm tự sinh bởi hệ điều hành Windows hoặc macOS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ====================================================================
+# LOGS & TEMPORARY FILES
+# ====================================================================
+# File ghi nhật ký lỗi nếu có phát sinh khi chạy ứng dụng
+*.log
