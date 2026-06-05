@@ -30,11 +30,11 @@ class InputPanel(tk.Frame):
         self.ent_jug_b.pack(pady=(0, 10))
 
         # Bình C
-        lbl_jug_b = tk.Label(self, text="Dung tích bình C (Lít):", font=ui_settings.FONT_LABEL, 
+        lbl_jug_c = tk.Label(self, text="Dung tích bình C (Lít):", font=ui_settings.FONT_LABEL, 
                              bg=ui_settings.BG_PANEL, fg=ui_settings.COLOR_MUTED)
-        lbl_jug_b.pack(anchor="w", padx=20, pady=(10, 2))
-        self.ent_jug_b = tk.Entry(self, font=ui_settings.FONT_TEXT, width=20, justify="center")
-        self.ent_jug_b.pack(pady=(0, 10))
+        lbl_jug_c.pack(anchor="w", padx=20, pady=(10, 2))
+        self.ent_jug_c = tk.Entry(self, font=ui_settings.FONT_TEXT, width=20, justify="center")
+        self.ent_jug_c.pack(pady=(0, 10))
         
         # Lượng nước Đích
         lbl_target = tk.Label(self, text="Lượng nước đích (Lít):", font=ui_settings.FONT_LABEL, 
@@ -55,5 +55,6 @@ class InputPanel(tk.Frame):
         return {
             "jug_a": self.ent_jug_a.get(),
             "jug_b": self.ent_jug_b.get(),
+            "jug_c": self.ent_jug_c.get(),
             "target": self.ent_target.get()
         }
