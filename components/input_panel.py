@@ -21,6 +21,7 @@ class InputPanel(tk.Frame):
         lbl_jug_a.pack(anchor="w", padx=20, pady=(10, 2))
         self.ent_jug_a = tk.Entry(self, font=ui_settings.FONT_TEXT, width=20, justify="center")
         self.ent_jug_a.pack(pady=(0, 10))
+        self.ent_jug_a.insert(0, "8")
         
         # Bình B
         lbl_jug_b = tk.Label(self, text="Dung tích bình B (Lít):", font=ui_settings.FONT_LABEL, 
@@ -28,32 +29,43 @@ class InputPanel(tk.Frame):
         lbl_jug_b.pack(anchor="w", padx=20, pady=(10, 2))
         self.ent_jug_b = tk.Entry(self, font=ui_settings.FONT_TEXT, width=20, justify="center")
         self.ent_jug_b.pack(pady=(0, 10))
+        self.ent_jug_b.insert(0, "5")
 
         # Bình C
-        lbl_jug_b = tk.Label(self, text="Dung tích bình C (Lít):", font=ui_settings.FONT_LABEL, 
+        lbl_jug_c = tk.Label(self, text="Dung tích bình C (Lít):", font=ui_settings.FONT_LABEL, 
                              bg=ui_settings.BG_PANEL, fg=ui_settings.COLOR_MUTED)
-        lbl_jug_b.pack(anchor="w", padx=20, pady=(10, 2))
-        self.ent_jug_b = tk.Entry(self, font=ui_settings.FONT_TEXT, width=20, justify="center")
-        self.ent_jug_b.pack(pady=(0, 10))
+        lbl_jug_c.pack(anchor="w", padx=20, pady=(10, 2))
+        self.ent_jug_c = tk.Entry(self, font=ui_settings.FONT_TEXT, width=20, justify="center")
+        self.ent_jug_c.pack(pady=(0, 10))
+        self.ent_jug_c.insert(0, "3")
         
         # Lượng nước Đích
         lbl_target = tk.Label(self, text="Lượng nước đích (Lít):", font=ui_settings.FONT_LABEL, 
-                              bg=ui_settings.BG_PANEL, fg=ui_settings.COLOR_MUTED)
+                               bg=ui_settings.BG_PANEL, fg=ui_settings.COLOR_MUTED)
         lbl_target.pack(anchor="w", padx=20, pady=(10, 2))
         self.ent_target = tk.Entry(self, font=ui_settings.FONT_TEXT, width=20, justify="center")
         self.ent_target.pack(pady=(0, 25))
+        self.ent_target.insert(0, "4")
         
         # --- Các nút thao tác xóa nhanh ---
         self.btn_clear_all = tk.Button(self, text="Clear All", font=ui_settings.FONT_LABEL,
                                        bg=ui_settings.BTN_PRIMARY, fg=ui_settings.TEXT_IN_BTN,
                                        activebackground=ui_settings.COLOR_ACCENT, activeforeground="white",
-                                       bd=0, cursor="hand2", width=15, height=1)
+                                       bd=0, cursor="hand2", width=15, height=1, command=self.clear_all)
         self.btn_clear_all.pack(pady=10)
+
+    def clear_all(self):
+        """Xóa sạch nội dung tất cả các entry"""
+        self.ent_jug_a.delete(0, tk.END)
+        self.ent_jug_b.delete(0, tk.END)
+        self.ent_jug_c.delete(0, tk.END)
+        self.ent_target.delete(0, tk.END)
 
     def get_inputs(self):
         """Trả về giá trị người dùng đã nhập"""
         return {
             "jug_a": self.ent_jug_a.get(),
             "jug_b": self.ent_jug_b.get(),
+            "jug_c": self.ent_jug_c.get(),
             "target": self.ent_target.get()
         }

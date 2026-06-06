@@ -1,7 +1,6 @@
-# Khu vực hiển thị kết quả và quá trình thực thi
-# components/result_panel.py
 import tkinter as tk
 from constants import ui_settings
+from components.animation.engine import WaterJugAnimationEngine
 
 class ResultPanel(tk.Frame):
     def __init__(self, parent):
@@ -12,13 +11,40 @@ class ResultPanel(tk.Frame):
                             font=ui_settings.FONT_TITLE, bg=ui_settings.BG_MAIN, fg=ui_settings.COLOR_DARK)
         lbl_main.pack(pady=15)
         
-        # --- KHU VỰC GIỮ CHỖ (Để vẽ đồ thị bình nước hoặc animation sau này) ---
+        # --- KHU VỰC HOẠT HỌA ---
         self.canvas_area = tk.Frame(self, bg="#FFFFFF", bd=1, relief="solid")
         self.canvas_area.pack(expand=True, fill="both", padx=20, pady=10)
         
-        lbl_placeholder = tk.Label(self.canvas_area, text="[ Khu vực trống thiết kế Mô phỏng trực quan Đồ họa ]",
-                                   font=ui_settings.FONT_LABEL, bg="#FFFFFF", fg=ui_settings.COLOR_ACCENT)
-        lbl_placeholder.place(relx=0.5, rely=0.5, anchor="center")
+        # Tạo canvas của động cơ animation
+        self.animation_engine = WaterJugAnimationEngine(self.canvas_area, on_log=self.log_message)
+        self.animation_engine.pack(expand=True, fill="both")
+        
+        # --- THANH PHÍM ĐIỀU KHIỂN THỦ CÔNG ---
+        self.btn_frame = tk.Frame(self, bg=ui_settings.BG_MAIN)
+        self.btn_frame.pack(fill="x", padx=20, pady=(0, 10))
+        
+        self.fill_buttons = []
+        self.empty_buttons = []
+        
+        for i in range(3):
+            lbl_name = ["A", "B", "C"][i]
+            frame_jug_ctrl = tk.Frame(self.btn_frame, bg=ui_settings.BG_MAIN)
+            frame_jug_ctrl.pack(side="left", expand=True)
+            
+            lbl_jug = tk.Label(frame_jug_ctrl, text=f"Bình {lbl_name}:", font=ui_settings.FONT_LABEL, bg=ui_settings.BG_MAIN, fg=ui_settings.COLOR_DARK)
+            lbl_jug.pack(side="left", padx=5)
+            
+            btn_f = tk.Button(frame_jug_ctrl, text=f"Fill {lbl_name}", font=("Segoe UI", 9, "bold"),
+                              bg="#2ECC71", fg="white", activebackground="#27AE60", activeforeground="white",
+                              bd=0, cursor="hand2", width=7, command=lambda idx=i: self.animation_engine.start_fill(idx))
+            btn_f.pack(side="left", padx=2)
+            self.fill_buttons.append(btn_f)
+            
+            btn_e = tk.Button(frame_jug_ctrl, text=f"Empty {lbl_name}", font=("Segoe UI", 9, "bold"),
+                              bg="#E74C3C", fg="white", activebackground="#C0392B", activeforeground="white",
+                              bd=0, cursor="hand2", width=7, command=lambda idx=i: self.animation_engine.start_empty(idx))
+            btn_e.pack(side="left", padx=2)
+            self.empty_buttons.append(btn_e)
         
         # --- KHU VỰC TEXT LOG VISUALIZE STEPS (Chừa sẵn hiển thị các bước bằng text) ---
         lbl_log = tk.Label(self, text="Chi tiết các bước thực hiện (Text Steps Log):", 
