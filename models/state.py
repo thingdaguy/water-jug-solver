@@ -1,5 +1,3 @@
-# models/state.py
-
 class State:
     def __init__(self, jugs, capacities, parent=None, action=None, cost=0):
         """
@@ -39,7 +37,7 @@ class State:
 
     def get_path(self):
         """
-        Tái tạo lại đường đi từ trạng thái bắt đầu đến trạng thái hiện tại.
+        Truy vết đường đi từ trạng thái bắt đầu đến trạng thái hiện tại.
         Trả về một danh sách các đối tượng State.
         """
         path = []
@@ -48,6 +46,36 @@ class State:
             path.append(current)
             current = current.parent
         return path[::-1]
+    
+    def get_successors(state):
+        """
+        Sinh ra tất cả các trạng thái kế tiếp hợp lệ từ trạng thái hiện tại.
+        Trả về một danh sách các đối tượng State.
+        """
+        successors = []
+    num_jugs = len(state.jugs)
+    
+    # 1. Thao tác đổ đầy các bình
+    for idx in range(num_jugs):
+        new_state = fill_jug(state, idx)
+        if new_state:
+            successors.append(new_state)
+            
+    # 2. Thao tác xả rỗng các bình
+    for idx in range(num_jugs):
+        new_state = empty_jug(state, idx)
+        if new_state:
+            successors.append(new_state)
+            
+    # 3. Thao tác rót nước qua lại giữa các bình
+    for from_idx in range(num_jugs):
+        for to_idx in range(num_jugs):
+            if from_idx != to_idx:
+                new_state = pour_jug(state, from_idx, to_idx)
+                if new_state:
+                    successors.append(new_state)
+                    
+    return successors
 
     def __eq__(self, other):
         if not isinstance(other, State):
