@@ -1,10 +1,15 @@
 import sys
 import os
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from models.state import State
 from algorithms.blind_search.BFS import bfs_search
 from algorithms.blind_search.DFS import dfs_search
+from algorithms.blind_search.UCS import ucs_search
 
 def print_solution(path, expanded_count, algorithm_name):
     """In kết quả tìm kiếm ra màn hình."""
@@ -24,23 +29,29 @@ def run_tests(capacities, target):
     start_state = State((0, 0, 0), capacities)
 
     # 1. Tìm kiếm theo chiều rộng (BFS)
-    bfs_path, bfs_expanded = bfs_search(start_state, target)
+    bfs_path, bfs_expanded, _, _, _ = bfs_search(start_state, target)
     print_solution(bfs_path, bfs_expanded, "Tìm kiếm theo chiều rộng (BFS)")
 
     # 2. Tìm kiếm theo chiều sâu (DFS)
-    dfs_path, dfs_expanded = dfs_search(start_state, target)
+    dfs_path, dfs_expanded, _, _, _ = dfs_search(start_state, target)
     print_solution(dfs_path, dfs_expanded, "Tìm kiếm theo chiều sâu (DFS)")
 
-    # 3. Bảng so sánh tổng hợp
+    # 3. Tìm kiếm chi phí đồng nhất (UCS)
+    ucs_path, ucs_expanded, _, _, _ = ucs_search(start_state, target)
+    print_solution(ucs_path, ucs_expanded, "Tìm kiếm chi phí đồng nhất (UCS)")
+
+    # 4. Bảng so sánh tổng hợp
     print(f"\n{'='*15} BẢNG SO SÁNH TỔNG HỢP {'='*15}")
     print(f"{'Thuật toán':<35} | {'Số bước (Chi phí)':<20} | {'Trạng thái đã mở rộng':<25}")
     print(f"{'-'*35}-+-{'-'*20}-+-{'-'*25}")
 
     bfs_steps = len(bfs_path) - 1 if bfs_path else "Không có"
     dfs_steps = len(dfs_path) - 1 if dfs_path else "Không có"
+    ucs_steps = len(ucs_path) - 1 if ucs_path else "Không có"
 
     print(f"{'BFS (Tìm kiếm theo chiều rộng)':<35} | {str(bfs_steps):<20} | {bfs_expanded:<25}")
     print(f"{'DFS (Tìm kiếm theo chiều sâu)':<35} | {str(dfs_steps):<20} | {dfs_expanded:<25}")
+    print(f"{'UCS (Tìm kiếm chi phí đồng nhất)':<35} | {str(ucs_steps):<20} | {ucs_expanded:<25}")
     print("=" * 86)
 
 if __name__ == "__main__":

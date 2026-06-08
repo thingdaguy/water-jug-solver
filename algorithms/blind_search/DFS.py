@@ -1,37 +1,42 @@
-
 from models.state import State
 
 def dfs_search(start_state: State, target: int):
     """
-    - Dùng visited toàn cục để tránh lặp trạng thái.
-    - Lưu parent dict để reconstruct path.
+    Tìm kiếm theo chiều sâu (DFS).
     Trả về:
         path: list[(State, action)] từ start đến goal, hoặc None nếu không tìm thấy.
         expanded_count: số trạng thái thực sự được mở rộng.
+        visited_states: set các trạng thái đã mở rộng.
+        frontier_states: set các trạng thái đang nằm trong ngăn xếp (stack).
+        parent_map: dict lưu vết (child -> (parent, action)).
     """
+    if start_state.is_goal(target):
+        parent_map = {start_state: (None, "Bắt đầu")}
+        return [(start_state, "Bắt đầu")], 0, {start_state}, set(), parent_map
+
     stack = [start_state]
-    visited = set([start_state])
+    enqueued = {start_state}
+    expanded = set()
     parent = {start_state: (None, "Bắt đầu")}
-    expanded_count = 0
 
     while stack:
         current = stack.pop()
-        expanded_count += 1
+        expanded.add(current)
 
         if current.is_goal(target):
-            # reconstruct path
             path = []
-            while current is not None:
-                prev, action = parent[current]
-                path.append((current, action))
-                current = prev
+            curr = current
+            while curr is not None:
+                prev, action = parent[curr]
+                path.append((curr, action))
+                curr = prev
             path.reverse()
-            return path, expanded_count
+            return path, len(expanded), expanded, set(stack), parent
 
         for next_state, action in reversed(current.get_successors()):
-            if next_state not in visited:
-                visited.add(next_state)
+            if next_state not in enqueued:
+                enqueued.add(next_state)
                 parent[next_state] = (current, action)
                 stack.append(next_state)
 
-    return None, expanded_count
+    return None, len(expanded), expanded, set(stack), parent

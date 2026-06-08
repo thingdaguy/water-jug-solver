@@ -30,11 +30,11 @@ def run_tests(capacities, target):
     start_state = State((0, 0, 0), capacities)
 
     # 1. Tìm kiếm Tham lam (Greedy Best-First Search)
-    greedy_path, greedy_expanded = greedy_search(start_state, target)
+    greedy_path, greedy_expanded, _, _, _ = greedy_search(start_state, target)
     print_solution(greedy_path, greedy_expanded, "Tìm kiếm Tham lam (Greedy Best-First)")
 
     # 2. Tìm kiếm A*
-    astar_path, astar_expanded = a_star_search(start_state, target)
+    astar_path, astar_expanded, _, _, _ = a_star_search(start_state, target)
     print_solution(astar_path, astar_expanded, "Tìm kiếm A*")
 
     # 3. Bảng so sánh tổng hợp

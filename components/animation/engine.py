@@ -49,11 +49,21 @@ class WaterJugAnimationEngine(tk.Canvas):
         self.lvl_dest_start = 0.0
         self.lvl_dest_end = 0.0
         
+        # Cho phép tắt tương tác thủ công khi AI đang chạy lời giải
+        self.interactive = True
+
         # Bind mouse click for interactive play
         self.bind("<Button-1>", self.on_canvas_click)
         
         # Draw initial state
         self.redraw()
+
+    def set_interactive(self, enabled):
+        """Bật/tắt điều khiển thủ công (click cốc, fill/empty)."""
+        self.interactive = enabled
+        if not enabled:
+            self.selected_jug = None
+            self.redraw()
 
     def set_config(self, capacities, initial_levels=None):
         """Configure capacities and levels of the 3 jugs."""
@@ -106,7 +116,7 @@ class WaterJugAnimationEngine(tk.Canvas):
 
     def on_canvas_click(self, event):
         """Handles selecting and pouring between cups interactively."""
-        if self.is_animating:
+        if not self.interactive or self.is_animating:
             return
             
         click_x, click_y = event.x, event.y

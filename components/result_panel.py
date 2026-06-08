@@ -78,3 +78,10 @@ class ResultPanel(tk.Frame):
         self.txt_logger.config(state="normal")
         self.txt_logger.delete("1.0", tk.END)
         self.txt_logger.config(state="disabled")
+
+    def set_manual_controls_enabled(self, enabled):
+        """Bật/tắt nút Fill/Empty và tương tác canvas khi AI đang chạy."""
+        state = "normal" if enabled else "disabled"
+        for btn in self.fill_buttons + self.empty_buttons:
+            btn.config(state=state)
+        self.animation_engine.set_interactive(enabled)
