@@ -38,17 +38,29 @@ class AppWindow(tk.Tk):
         self.current_queue_index = 0
         self.last_search_results = None # Lưu kết quả lần chạy gần nhất để xem đồ thị
         
-        # Khởi tạo 3 panel chính
-        self.input_panel = InputPanel(self)
+        # Tạo khung chứa phía bên trái để gom nhóm GroupPanel và InputPanel
+        self.left_container = tk.Frame(self, bg=ui_settings.BG_MAIN)
+        self.left_container.pack(side="left", fill="y", padx=15, pady=15)
+        self.left_container.config(width=260)
+        self.left_container.pack_propagate(False)
+        
+        # Khởi tạo các panel chính
+        from components.group_panel import GroupPanel
+        self.group_panel = GroupPanel(self.left_container)
+        self.input_panel = InputPanel(self.left_container)
         self.result_panel = ResultPanel(self)
         self.control_panel = ControlPanel(self)
         
-        # Đặt bố cục (Layout) trái - giữa - phải tương tự như ảnh mẫu
-        self.input_panel.pack(side="left", fill="y", padx=15, pady=15, ipadx=10)
+        # Đặt bố cục các panel bên trái
+        self.group_panel.pack(side="top", fill="x", pady=(0, 15))
+        self.input_panel.pack(side="top", fill="both", expand=True)
+        
+        # Đặt bố cục các panel giữa và phải
         self.control_panel.pack(side="right", fill="y", padx=15, pady=15, ipadx=10)
         self.result_panel.pack(side="left", expand=True, fill="both", pady=15)
         
         # Thiết lập kích thước cố định mong muốn cho các thanh panel biên
+        self.group_panel.config(width=260)
         self.input_panel.config(width=260)
         self.control_panel.config(width=280)
         

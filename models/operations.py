@@ -31,11 +31,7 @@ def empty_jug(state, jug_idx):
     return State(new_jugs, state.capacities), action_str
 
 def pour_jug(state, from_idx, to_idx):
-    """
-    Rót nước từ bình from_idx sang bình to_idx cho đến khi
-    bình nguồn hết hoặc bình đích đầy.
-    Trả về (State mới, mô_tả_hành_động) hoặc None nếu không thể rót.
-    """
+  
     if from_idx == to_idx or state.jugs[from_idx] == 0 or state.jugs[to_idx] == state.capacities[to_idx]:
         return None
     pour_amount = min(state.jugs[from_idx], state.capacities[to_idx] - state.jugs[to_idx])

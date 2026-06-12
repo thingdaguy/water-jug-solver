@@ -184,7 +184,7 @@ class GraphWindow(tk.Toplevel):
 
         for name, bg_color, fg_color in [
             ("Solution Path", "#2ECC71", "white"),
-            ("Visited (Expanded)", "#00B894", "white"),
+            ("Visited (Expanded)", "#D6E4FF", "white"),
             ("Frontier (Queue/Stack)", "#F4A261", "black"),
             ("Unexplored", "#E8ECF0", "black"),
         ]:

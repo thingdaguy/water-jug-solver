@@ -100,7 +100,7 @@ class ControlPanel(tk.Frame):
         
         # Nút xem đồ thị tìm kiếm
         self.btn_show_graph = tk.Button(self, text="Xem Đồ Thị Tìm Kiếm", font=ui_settings.FONT_LABEL,
-                                        bg=ui_settings.COLOR_ACCENT, fg="white",
-                                        activebackground=ui_settings.COLOR_DARK, activeforeground="white",
+                                        bg=ui_settings.BTN_PRIMARY, fg="white",
+                                        activebackground=ui_settings.COLOR_ACCENT, activeforeground="white",
                                         bd=0, cursor="hand2", width=20, height=1, state="disabled")
         self.btn_show_graph.pack(pady=15)

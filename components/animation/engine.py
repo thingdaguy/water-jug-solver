@@ -20,7 +20,7 @@ class WaterJugAnimationEngine(tk.Canvas):
         self.levels = [8, 0, 0]
         
         # UI Coordinates & layout parameters
-        self.cup_w = 85
+        self.cup_w = 100
         self.base_y = 240
         self.centers = [175, 350, 525]
         self.base_x = [c - self.cup_w / 2 for c in self.centers]
@@ -54,6 +54,9 @@ class WaterJugAnimationEngine(tk.Canvas):
 
         # Bind mouse click for interactive play
         self.bind("<Button-1>", self.on_canvas_click)
+        
+        # Bind resize event to handle dynamic positioning & center alignment
+        self.bind("<Configure>", self.on_resize)
         
         # Draw initial state
         self.redraw()
@@ -90,13 +93,23 @@ class WaterJugAnimationEngine(tk.Canvas):
         """Set the simulation speed (1 to 10)."""
         self.simulation_speed = speed
 
+    def on_resize(self, event):
+        """Called when the canvas is resized to update centers and redraw."""
+        # Update base_y relative to canvas height
+        self.base_y = event.height - 80
+        
+        # Recalculate centers to be exactly at 1/6, 3/6, 5/6 of the canvas width
+        self.centers = [event.width * (2 * i + 1) / 6 for i in range(3)]
+        self.base_x = [c - self.cup_w / 2 for c in self.centers]
+        self.redraw()
+
     def get_cup_heights(self):
         """Calculate dynamic cup heights based on capacities to look proportional."""
         max_cap = max(self.capacities) if self.capacities else 8
         if max_cap == 0:
             max_cap = 8
-        base_height = 60
-        height_range = 100
+        base_height = 80
+        height_range = 120
         
         heights = []
         for cap in self.capacities:
@@ -394,7 +407,9 @@ class WaterJugAnimationEngine(tk.Canvas):
         cup_heights = self.get_cup_heights()
         
         # 1. Draw static background grid or target water goal text
-        self.create_text(350, 25, text="CHẠM BÌNH ĐỂ LỰA CHỌN & RÓT NƯỚC", 
+        canvas_w = self.winfo_width()
+        draw_x = canvas_w / 2 if canvas_w > 1 else 350
+        self.create_text(draw_x, 25, text="CHẠM BÌNH ĐỂ LỰA CHỌN & RÓT NƯỚC", 
                          font=("Segoe UI", 10, "italic"), fill=ui_settings.COLOR_ACCENT)
         
         # 2. Render each of the 3 jugs
