@@ -32,9 +32,19 @@ def ucs_search(start_state: State, target: int):
             frontier_states = set(item[2] for item in frontier if item[2] not in visited_states)
             return path, expanded_count, visited_states, frontier_states, parent_map
         for next_state, action in current_state.get_successors():
-            next_g = g + 1 # Mỗi bước đi có chi phí bằng 1
-            # Nếu trạng thái chưa được duyệt, hoặc ta tìm thấy đường đi rẻ hơn
-            # (Trong bài toán có chi phí bước = 1, đường đầu tiên đến 1 trạng thái cũng là rẻ nhất hoặc tương đương)
+            # Lượng nước thay đổi        
+            max_difference = 0
+            for i in range(len(current_state.jugs)):
+                current_amount = current_state.jugs[i]
+                next_amount = next_state.jugs[i]
+
+                difference = abs(next_amount - current_amount)
+
+                if difference > max_difference:
+                    max_difference = difference
+
+            next_g = g + max_difference 
+            
             if next_state not in visited_states:
                 # Kiểm tra xem có cần cập nhật parent_map không
                 if next_state not in parent_map:
