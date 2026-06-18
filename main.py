@@ -1,8 +1,6 @@
 # main.py
-from components.app_window import AppWindow
+from components.pygame_ui import run_app
 
 if __name__ == "__main__":
-    # Khởi tạo cửa sổ giao diện chính trống
-    app = AppWindow()
-    # Chạy vòng lặp ứng dụng Tkinter
-    app.mainloop()
+    # Chạy vòng lặp ứng dụng Pygame
+    run_app()
