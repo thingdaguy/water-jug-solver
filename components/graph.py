@@ -5,7 +5,56 @@ from constants.colors import (
     COLOR_TEXT_WHITE, COLOR_TEXT_GOLD, COLOR_TEXT_MUTED, COLOR_GREEN_SUCCESS,
     COLOR_RED_ERROR, COLOR_GOLD
 )
-from components.renderer import draw_pixel_panel, render_shadow_text
+from components.renderer import draw_pixel_panel, render_shadow_text, make_bottle_surface
+
+NODE_SURFACE_CACHE = {}
+
+def get_node_card_surface(state, node_color, outline_color, outline_w, wave_frame):
+    """Generates and caches a full-size surface containing three mini bottles and a level label."""
+    key = (state.jugs, state.capacities, node_color, outline_color, outline_w, wave_frame)
+    if key not in NODE_SURFACE_CACHE:
+        caps = state.capacities
+        lvls = state.jugs
+        hA = 100 + int((caps[0] / 10.0) * 110)
+        hB = 100 + int((caps[1] / 10.0) * 110)
+        hC = 100 + int((caps[2] / 10.0) * 110)
+        max_h = max(hA, hB, hC)
+        
+        card_w = 410
+        card_h = max_h + 80
+        
+        surf = pygame.Surface((card_w, card_h), pygame.SRCALPHA)
+        
+        # Fill colored panel card backdrop
+        pygame.draw.rect(surf, node_color, (0, 0, card_w, card_h))
+        # RPG card double border
+        pygame.draw.rect(surf, (20, 20, 28), (0, 0, card_w, card_h), 6)
+        pygame.draw.rect(surf, outline_color, (6, 6, card_w - 12, card_h - 12), outline_w)
+        
+        wave_offset = wave_frame * (math.pi / 2.0)
+        
+        # Draw the 3 bottles
+        bottleA = make_bottle_surface(caps[0], lvls[0], is_selected=False, wave_offset=wave_offset)
+        bottleB = make_bottle_surface(caps[1], lvls[1], is_selected=False, wave_offset=wave_offset + 1.5)
+        bottleC = make_bottle_surface(caps[2], lvls[2], is_selected=False, wave_offset=wave_offset + 3.0)
+        
+        surf.blit(bottleA, (20, max_h - hA + 10))
+        surf.blit(bottleB, (140, max_h - hB + 10))
+        surf.blit(bottleC, (270, max_h - hC + 10))
+        
+        # Draw tuple text coordinate at the bottom of the card
+        lbl_txt = f"({lvls[0]},{lvls[1]},{lvls[2]})"
+        card_font = pygame.font.SysFont("Consolas", 32, bold=True)
+        txt_surf = card_font.render(lbl_txt, True, COLOR_TEXT_WHITE)
+        shadow_surf = card_font.render(lbl_txt, True, (20, 20, 28))
+        txt_rect = txt_surf.get_rect(center=(card_w // 2, max_h + 45))
+        
+        surf.blit(shadow_surf, (txt_rect.x + 3, txt_rect.y + 3))
+        surf.blit(txt_surf, txt_rect)
+        
+        NODE_SURFACE_CACHE[key] = surf
+        
+    return NODE_SURFACE_CACHE[key]
 
 def layout_graph(last_search_results):
     """Calculates tree positions for search space nodes based on DFS/BFS hierarchies."""
@@ -109,15 +158,28 @@ def draw_graph_screen(app):
     mouse_pos = pygame.mouse.get_pos()
     app.graph_hovered_node = None
     
-    node_r = int(24 * app.graph_zoom)
-    node_r = max(5, node_r)
+    # Calculate aspect ratio of card based on capacities of bottles in start state
+    caps = start_state.capacities
+    hA = 100 + int((caps[0] / 10.0) * 110)
+    hB = 100 + int((caps[1] / 10.0) * 110)
+    hC = 100 + int((caps[2] / 10.0) * 110)
+    max_h = max(hA, hB, hC)
+    card_h_full = max_h + 80
+    card_aspect = card_h_full / 410.0
+    
+    node_w_base = 90
+    node_h_base = int(node_w_base * card_aspect)
+    
+    node_w = max(10, int(node_w_base * app.graph_zoom))
+    node_h = max(8, int(node_h_base * app.graph_zoom))
+    
+    wave_frame = (pygame.time.get_ticks() // 200) % 4
     
     for state, (wx, wy) in app.graph_positions.items():
         sx, sy = get_screen_pos(wx, wy)
         
         # Color mapping depending on node class
         node_color = COLOR_PANEL_BG
-        text_color = COLOR_TEXT_WHITE
         outline_color = COLOR_BORDER_OUTER
         outline_w = 2
         
@@ -138,26 +200,20 @@ def draw_graph_screen(app):
             outline_color = COLOR_GOLD
             outline_w = 4
             
-        # Draw base sphere
-        pygame.draw.circle(screen, node_color, (sx, sy), node_r)
-        pygame.draw.circle(screen, outline_color, (sx, sy), node_r, outline_w)
-        
-        # Render text coordinates inside node
-        if app.graph_zoom > 0.4:
-            lbl_txt = ",".join(map(str, state.jugs))
-            lbl_surf = app.font_small.render(lbl_txt, True, text_color)
-            lbl_rect = lbl_surf.get_rect(center=(sx, sy))
-            screen.blit(lbl_surf, lbl_rect)
+        # Draw node as card containing bottle surfaces
+        card_surf = get_node_card_surface(state, node_color, outline_color, outline_w, wave_frame)
+        scaled_card = pygame.transform.scale(card_surf, (node_w, node_h))
+        screen.blit(scaled_card, (sx - node_w // 2, sy - node_h // 2))
             
         # Labels tags
         if state == start_state and app.graph_zoom > 0.5:
-            render_shadow_text(screen, "START", app.font_small, COLOR_RED_ERROR, (sx - 20, sy - node_r - 20))
+            render_shadow_text(screen, "START", app.font_small, COLOR_RED_ERROR, (sx - 20, sy - node_h // 2 - 20))
         elif state.is_goal(target) and app.graph_zoom > 0.5:
-            render_shadow_text(screen, "GOAL", app.font_small, COLOR_GOLD, (sx - 18, sy + node_r + 5))
+            render_shadow_text(screen, "GOAL", app.font_small, COLOR_GOLD, (sx - 18, sy + node_h // 2 + 5))
 
-        # Check collision details for tooltip display
-        dist = math.sqrt((mouse_pos[0] - sx)**2 + (mouse_pos[1] - sy)**2)
-        if dist <= node_r:
+        # Check collision details for tooltip display using rectangular box
+        rect = pygame.Rect(sx - node_w // 2, sy - node_h // 2, node_w, node_h)
+        if rect.collidepoint(mouse_pos):
             app.graph_hovered_node = state
 
     # 3. Tooltip overlay rendering
