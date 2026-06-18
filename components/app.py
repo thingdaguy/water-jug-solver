@@ -1,9 +1,15 @@
-# components/pygame_ui/app.py
 import pygame
 import math
 import sys
 import time
 import importlib
+
+# Import package components
+from constants.colors import (
+    COLOR_BG_DARK, COLOR_PANEL_BG, COLOR_BORDER_OUTER, COLOR_BORDER_INNER,
+    COLOR_TEXT_WHITE, COLOR_TEXT_GOLD, COLOR_TEXT_MUTED, COLOR_LIQUID_WATER,
+    COLOR_RED_ERROR, COLOR_DARK_BLUE, COLOR_GOLD, COLOR_TEXT_GREEN, COLOR_TEXT_AMBER
+)
 
 # Import models and search algorithms
 from models.state import State
@@ -18,19 +24,14 @@ a_star_search = a_star_module.a_star_search
 
 from algorithms.informed_search.Heuristic import heuristic_diff, heuristic_estimate
 
-# Import package components
-from components.pygame_ui.colors import (
-    COLOR_BG_DARK, COLOR_PANEL_BG, COLOR_BORDER_OUTER, COLOR_BORDER_INNER,
-    COLOR_TEXT_WHITE, COLOR_TEXT_GOLD, COLOR_TEXT_MUTED, COLOR_LIQUID_WATER,
-    COLOR_RED_ERROR, COLOR_DARK_BLUE, COLOR_GOLD, COLOR_TEXT_GREEN, COLOR_TEXT_AMBER
-)
-from components.pygame_ui.renderer import (
+
+from components.renderer import (
     draw_pixel_panel, render_shadow_text, make_bottle_surface, blit_rotate_pivot
 )
-from components.pygame_ui.widgets import (
+from components.widgets import (
     Button, Incrementer, RadioGroup, ScrollLogBox, SpeedSlider
 )
-from components.pygame_ui.graph import (
+from components.graph import (
     layout_graph, draw_graph_screen
 )
 

@@ -1,12 +1,11 @@
-# components/pygame_ui/widgets.py
 import pygame
 import math
-from components.pygame_ui.colors import (
+from constants.colors import (
     COLOR_PANEL_BG, COLOR_TEXT_WHITE, COLOR_TEXT_MUTED, COLOR_TEXT_GOLD,
     COLOR_BORDER_OUTER, COLOR_BORDER_INNER, COLOR_DARK_BLUE, COLOR_RED_ERROR,
     COLOR_TEXT_GREEN, COLOR_TEXT_AMBER, clamp_color
 )
-from components.pygame_ui.renderer import draw_pixel_panel
+from components.renderer import draw_pixel_panel
 
 class Button:
     def __init__(self, x, y, w, h, text, callback=None, color=COLOR_PANEL_BG, text_color=COLOR_TEXT_WHITE, is_visualize=False):

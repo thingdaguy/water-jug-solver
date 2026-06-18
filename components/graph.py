@@ -1,12 +1,11 @@
-# components/pygame_ui/graph.py
 import pygame
 import math
-from components.pygame_ui.colors import (
+from constants.colors import (
     COLOR_BG_DARK, COLOR_PANEL_BG, COLOR_BORDER_OUTER, COLOR_BORDER_INNER,
     COLOR_TEXT_WHITE, COLOR_TEXT_GOLD, COLOR_TEXT_MUTED, COLOR_GREEN_SUCCESS,
     COLOR_RED_ERROR, COLOR_GOLD
 )
-from components.pygame_ui.renderer import draw_pixel_panel, render_shadow_text
+from components.renderer import draw_pixel_panel, render_shadow_text
 
 def layout_graph(last_search_results):
     """Calculates tree positions for search space nodes based on DFS/BFS hierarchies."""

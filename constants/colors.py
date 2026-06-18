@@ -1,4 +1,3 @@
-# components/pygame_ui/colors.py
 
 COLOR_BG_DARK = (20, 20, 28)      # Deep dark space background
 COLOR_PANEL_BG = (36, 39, 58)     # Dark slate for panel backdrops

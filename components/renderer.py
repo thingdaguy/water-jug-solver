@@ -1,7 +1,6 @@
-# components/pygame_ui/renderer.py
 import pygame
 import math
-from components.pygame_ui.colors import (
+from constants.colors import (
     COLOR_BG_DARK, COLOR_PANEL_BG, COLOR_BORDER_OUTER, COLOR_BORDER_INNER,
     COLOR_LIQUID_WATER, COLOR_LIQUID_BUBBLE, COLOR_CORK, COLOR_GOLD
 )
