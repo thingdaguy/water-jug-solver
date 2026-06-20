@@ -29,7 +29,7 @@ from components.renderer import (
     draw_pixel_panel, render_shadow_text, make_bottle_surface, blit_rotate_pivot
 )
 from components.widgets import (
-    Button, Incrementer, RadioGroup, ScrollLogBox, SpeedSlider
+    Button, Incrementer, RadioGroup, ScrollLogBox, SpeedSlider, Dropdown
 )
 from components.graph import (
     layout_graph, draw_graph_screen
@@ -93,6 +93,7 @@ class PygameWaterJugSolver:
         self.path_length = 0
         self.execution_time = 0.0
         self.search_status = "Ready"
+        self.run_history = []
 
         # Graph Interactive Settings
         self.graph_zoom = 1.0
@@ -130,6 +131,7 @@ class PygameWaterJugSolver:
             ("Hàm khoảng cách hiệu", "diff"),
             ("Hàm mục tiêu ước lượng", "estimate")
         ], "diff")
+        self.cbo_heuristic.is_disabled = True
 
         self.btn_visualize = Button(1020, 325, 240, 45, "VISUALIZE SEARCH", self.run_search_and_playback, color=(246, 177, 122), text_color=COLOR_DARK_BLUE, is_visualize=True)
         self.speed_slider = SpeedSlider(1020, 390, 240, "Speed", 1, 10, 5, self.set_speed)
@@ -138,11 +140,17 @@ class PygameWaterJugSolver:
         self.btn_pause = Button(1102, 455, 75, 35, "Pause", self.toggle_pause)
         self.btn_reset = Button(1185, 455, 75, 35, "Reset", self.reset_game)
 
-        self.btn_show_graph = Button(1020, 640, 240, 40, "XEM ĐỒ THỊ TÌM KIẾM", self.show_search_graph)
+        self.btn_show_graph = Button(20, 430, 240, 35, "XEM ĐỒ THỊ TÌM KIẾM", self.show_search_graph)
         self.btn_show_graph.is_disabled = True
+        
+        self.btn_compare = Button(20, 470, 240, 35, "SO SÁNH CÁC THUẬT TOÁN", self.show_stats_screen)
+        self.btn_compare.is_disabled = True
+        
+        self.graph_dropdown = None
 
-        self.btn_graph_back = Button(1150, 15, 110, 35, "QUAY LẠI", self.back_to_simulator, color=COLOR_BORDER_INNER, text_color=COLOR_DARK_BLUE)
-        self.btn_graph_fit = Button(1030, 15, 110, 35, "KHỚP MH", self.fit_graph_to_screen)
+        self.btn_graph_back = Button(1150, 665, 110, 35, "QUAY LẠI", self.back_to_simulator, color=COLOR_BORDER_INNER, text_color=COLOR_DARK_BLUE)
+        self.btn_stats_back = Button(1150, 15, 110, 35, "QUAY LẠI", self.back_to_simulator, color=COLOR_BORDER_INNER, text_color=COLOR_DARK_BLUE)
+        self.btn_graph_fit = Button(1030, 665, 110, 35, "KHỚP MH", self.fit_graph_to_screen)
 
         # Bottom log box
         self.log_box = ScrollLogBox(280, 530, 720, 180)
@@ -188,6 +196,16 @@ class PygameWaterJugSolver:
             self.current_screen = "graph"
             self.fit_graph_to_screen()
             self.log_box.add_log("Đang xem bản đồ cây tìm kiếm.")
+
+    def show_stats_screen(self):
+        self.current_screen = "stats"
+        self.log_box.add_log("Đang xem bảng thống kê thuật toán.")
+
+    def on_graph_dropdown_change(self, algo_name):
+        if hasattr(self, 'comparison_results') and algo_name in self.comparison_results:
+            self.last_search_results = self.comparison_results[algo_name]["raw_results"]
+            self.graph_positions = layout_graph(self.last_search_results)
+            self.log_box.add_log(f"Đã chuyển sang đồ thị của {algo_name}.")
 
     def back_to_simulator(self):
         self.current_screen = "simulator"
@@ -243,11 +261,10 @@ class PygameWaterJugSolver:
         if self.anim_active:
             return
             
-        start_state = State(tuple(self.levels), tuple(self.capacities))
+        self.initial_start_state = State(tuple(self.levels), tuple(self.capacities))
         algo_key = self.algo_group.selected_value
         heuristic_name = self.cbo_heuristic.selected_value
         
-        heuristic_fn = heuristic_diff if heuristic_name == "diff" else heuristic_estimate
         self.log_box.add_log(f"--- Bắt đầu chạy giải thuật: {algo_key} ---")
         
         self.is_running_solution = False
@@ -255,25 +272,29 @@ class PygameWaterJugSolver:
         self.current_queue_index = 0
         self.btn_pause.text = "Pause"
         
-        start_time = time.perf_counter()
+        self.run_all_algorithms_for_comparison()
         
-        if algo_key == "BFS":
-            path, count, visited, frontier, parent_map = bfs_search(start_state, self.target)
-        elif algo_key == "DFS":
-            path, count, visited, frontier, parent_map = dfs_search(start_state, self.target)
-        elif algo_key == "UCS":
-            path, count, visited, frontier, parent_map = ucs_search(start_state, self.target)
-        elif algo_key == "Greedy Best-First":
-            path, count, visited, frontier, parent_map = greedy_search(start_state, self.target, heuristic_fn)
-        elif algo_key == "A* Search":
-            path, count, visited, frontier, parent_map = a_star_search(start_state, self.target, heuristic_fn)
+        if algo_key in ["Greedy Best-First", "A* Search"]:
+            suffix = " (Khoảng cách hiệu)" if heuristic_name == "diff" else " (Mục tiêu ước lượng)"
+            lookup_key = "Greedy" + suffix if algo_key == "Greedy Best-First" else "A*" + suffix
         else:
+            lookup_key = algo_key
+            
+        if lookup_key not in self.comparison_results:
             self.log_box.add_log("LỖI: Thuật toán không được hỗ trợ.")
             return
+            
+        res = self.comparison_results[lookup_key]
+        path = res["raw_results"][2]
+        count = res["nodes"]
+        visited = res["raw_results"][3]
+        frontier = res["raw_results"][4]
+        parent_map = res["raw_results"][1]
+        exec_time_ms = res["time"]
 
-        exec_time_ms = (time.perf_counter() - start_time) * 1000.0
-        self.last_search_results = (start_state, parent_map, path, visited, frontier, algo_key, self.target)
+        self.last_search_results = res["raw_results"]
         self.btn_show_graph.is_disabled = False
+        self.btn_compare.is_disabled = False
         self.nodes_explored = count
         self.execution_time = exec_time_ms
 
@@ -281,11 +302,13 @@ class PygameWaterJugSolver:
             self.path_length = 0
             self.search_status = "Unsolvable"
             self.log_box.add_log("Không tìm thấy đường đi tới lượng nước đích!")
+            self.run_history.append({"algo": algo_key, "path": 0, "nodes": count, "time": exec_time_ms, "status": "Unsolvable"})
             self.show_search_graph()
             return
 
         self.path_length = len(path) - 1
         self.search_status = "Running"
+        self.run_history.append({"algo": algo_key, "path": self.path_length, "nodes": count, "time": exec_time_ms, "status": "Success"})
         self.log_box.add_log(f"Thành công! Số bước giải: {self.path_length}")
         
         for i in range(len(path) - 1):
@@ -301,6 +324,75 @@ class PygameWaterJugSolver:
         self.playback_paused = False
         self.current_queue_index = 0
         self.play_next_queue_step()
+
+    def run_all_algorithms_for_comparison(self):
+        start_state = getattr(self, 'initial_start_state', State(tuple(self.levels), tuple(self.capacities)))
+        target = self.target
+        heuristic_name = self.cbo_heuristic.selected_value
+        heuristic_fn = heuristic_diff if heuristic_name == "diff" else heuristic_estimate
+
+        self.log_box.add_log("Đang chạy ngầm tất cả thuật toán để so sánh...")
+        pygame.display.flip()
+        
+        algos = {
+            "BFS": bfs_search,
+            "DFS": dfs_search,
+            "UCS": ucs_search,
+            "Greedy (Khoảng cách hiệu)": lambda s, t: greedy_search(s, t, heuristic_diff),
+            "Greedy (Mục tiêu ước lượng)": lambda s, t: greedy_search(s, t, heuristic_estimate),
+            "A* (Khoảng cách hiệu)": lambda s, t: a_star_search(s, t, heuristic_diff),
+            "A* (Mục tiêu ước lượng)": lambda s, t: a_star_search(s, t, heuristic_estimate)
+        }
+        
+        self.comparison_results = {}
+        for name, fn in algos.items():
+            st = time.perf_counter()
+            path, count, visited, frontier, parent_map = fn(start_state, target)
+            exec_time = (time.perf_counter() - st) * 1000.0
+            
+            b = round(len(parent_map) / max(1, count), 1)
+            d = len(path) - 1 if path else 0
+            
+            if name == "DFS":
+                max_depth = 0
+                for node in parent_map:
+                    depth = 0
+                    curr = node
+                    while curr is not None and parent_map[curr][0] is not None:
+                        curr = parent_map[curr][0]
+                        depth += 1
+                        if depth > 100: break
+                    if depth > max_depth: max_depth = depth
+                m = max_depth
+                time_c = f"O({b}^{m})"
+                space_c = f"O({b}*{m})"
+            else:
+                time_c = f"O({b}^{d})"
+                space_c = f"O({b}^{d})"
+                
+            self.comparison_results[name] = {
+                "algo": name,
+                "path_len": d,
+                "nodes": count,
+                "time": exec_time,
+                "status": "Success" if path else "Unsolvable",
+                "time_c": time_c,
+                "space_c": space_c,
+                "raw_results": (start_state, parent_map, path, visited, frontier, name, target)
+            }
+            
+        self.log_box.add_log("Đã chuẩn bị xong dữ liệu so sánh 7 thuật toán.")
+        
+        options = [(name, name) for name in self.comparison_results.keys()]
+        current_algo = self.algo_group.selected_value
+        if current_algo in ["Greedy Best-First", "A* Search"]:
+            heuristic_name = self.cbo_heuristic.selected_value
+            suffix = " (Khoảng cách hiệu)" if heuristic_name == "diff" else " (Mục tiêu ước lượng)"
+            current_algo = "Greedy" + suffix if current_algo == "Greedy Best-First" else "A*" + suffix
+            
+        if current_algo not in self.comparison_results:
+            current_algo = "BFS"
+        self.graph_dropdown = Dropdown(960, 15, 300, 35, options, current_algo, self.on_graph_dropdown_change)
 
     def parse_transition(self, state_from, state_to):
         diff = [t - f for f, t in zip(state_from.jugs, state_to.jugs)]
@@ -609,12 +701,12 @@ class PygameWaterJugSolver:
         self.btn_clear.draw(self.screen, self.font_label)
 
         # Developer log
-        parch_rect = pygame.Rect(20, 530, 240, 160)
+        parch_rect = pygame.Rect(20, 560, 240, 130)
         draw_pixel_panel(self.screen, parch_rect, title="DEVELOPERS", is_raised=False)
-        render_shadow_text(self.screen, "NHÓM 3 - THỰC HÀNH AI", self.font_label, COLOR_TEXT_GOLD, (35, 555))
-        render_shadow_text(self.screen, "1. Hồ Công Phong", self.font_small, COLOR_TEXT_WHITE, (35, 585))
-        render_shadow_text(self.screen, "2. Phạm Uyên Thư", self.font_small, COLOR_TEXT_WHITE, (35, 615))
-        render_shadow_text(self.screen, "3. Nguyễn Phước Thịnh", self.font_small, COLOR_TEXT_WHITE, (35, 645))
+        render_shadow_text(self.screen, "NHÓM 3 - THỰC HÀNH AI", self.font_label, COLOR_TEXT_GOLD, (35, 580))
+        render_shadow_text(self.screen, "1. Hồ Công Phong", self.font_small, COLOR_TEXT_WHITE, (35, 610))
+        render_shadow_text(self.screen, "2. Phạm Uyên Thư", self.font_small, COLOR_TEXT_WHITE, (35, 640))
+        render_shadow_text(self.screen, "3. Nguyễn Phước Thịnh", self.font_small, COLOR_TEXT_WHITE, (35, 670))
 
         # 2. Right Sidebar: Control Panel
         panel_right = pygame.Rect(1010, 10, 260, 700)
@@ -644,6 +736,7 @@ class PygameWaterJugSolver:
         render_shadow_text(self.screen, f"Status:         {self.search_status}", self.font_small, status_color, (1035, 595))
 
         self.btn_show_graph.draw(self.screen, self.font_label)
+        self.btn_compare.draw(self.screen, self.font_label)
 
         # 3. Central Simulation Area
         render_shadow_text(self.screen, "ALCHEMIST'S POTION JUG SIMULATION SPACE", self.font_title, COLOR_BORDER_INNER, (370, 20))
@@ -806,6 +899,12 @@ class PygameWaterJugSolver:
                     self.btn_clear.handle_event(event)
 
                     self.algo_group.handle_event(event)
+                    
+                    if self.algo_group.selected_value in ["BFS", "DFS", "UCS"]:
+                        self.cbo_heuristic.is_disabled = True
+                    else:
+                        self.cbo_heuristic.is_disabled = False
+                        
                     self.cbo_heuristic.handle_event(event)
                     self.btn_visualize.handle_event(event)
                     self.speed_slider.handle_event(event)
@@ -814,6 +913,8 @@ class PygameWaterJugSolver:
                     self.btn_reset.handle_event(event)
                     
                     self.btn_show_graph.handle_event(event)
+                    self.btn_compare.handle_event(event)
+                    self.log_box.handle_event(event)
 
                     for btn in self.manual_buttons:
                         btn.handle_event(event)
@@ -827,12 +928,16 @@ class PygameWaterJugSolver:
                 elif self.current_screen == "graph":
                     self.btn_graph_back.handle_event(event)
                     self.btn_graph_fit.handle_event(event)
+                    dropdown_consumed = False
+                    if hasattr(self, 'graph_dropdown') and self.graph_dropdown:
+                        dropdown_consumed = self.graph_dropdown.handle_event(event)
                     
-                    if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.type == pygame.MOUSEBUTTONDOWN and not dropdown_consumed:
                         if event.button == 1:
                             if not (self.btn_graph_back.rect.collidepoint(event.pos) or self.btn_graph_fit.rect.collidepoint(event.pos)):
-                                self.graph_dragging = True
-                                self.graph_drag_start = event.pos
+                                if not (hasattr(self, 'graph_dropdown') and self.graph_dropdown and self.graph_dropdown.is_expanded):
+                                    self.graph_dragging = True
+                                    self.graph_drag_start = event.pos
                         elif event.button == 4:
                             self.graph_zoom = min(self.graph_zoom * 1.15, 6.0)
                         elif event.button == 5:
@@ -849,15 +954,94 @@ class PygameWaterJugSolver:
                             self.graph_pan_x += dx / self.graph_zoom
                             self.graph_pan_y += dy / self.graph_zoom
                             self.graph_drag_start = event.pos
+                            
+                elif self.current_screen == "stats":
+                    self.btn_stats_back.handle_event(event)
 
             if self.is_running:
                 if self.current_screen == "simulator":
                     self.draw_simulator()
                 elif self.current_screen == "graph":
                     draw_graph_screen(self)
+                elif self.current_screen == "stats":
+                    self.draw_stats_screen()
                 
                 pygame.display.flip()
 
+    def draw_stats_screen(self):
+        self.screen.fill(COLOR_BG_DARK)
+        
+        # Draw background pattern
+        for row in range(0, 720, 40):
+            for col in range(0, 1280, 80):
+                offset = 20 if (row // 40) % 2 == 0 else 0
+                rect = pygame.Rect(col + offset, row, 80, 40)
+                pygame.draw.rect(self.screen, (24, 25, 34), rect, 1)
+
+        render_shadow_text(self.screen, "BẢNG SO SÁNH KẾT QUẢ CÁC THUẬT TOÁN", self.font_title, COLOR_TEXT_GOLD, (350, 30))
+        self.btn_stats_back.draw(self.screen, self.font_label)
+
+        # Draw Table
+        table_rect = pygame.Rect(50, 100, 1180, 580)
+        draw_pixel_panel(self.screen, table_rect, is_raised=False)
+
+        # Headers
+        headers = ["Thuật toán", "Độ phức tạp (Time)", "Độ phức tạp (Space)", "Số bước", "Số node", "Thời gian (ms)", "Trạng thái"]
+        col_widths = [200, 180, 180, 100, 130, 160, 150]
+        start_x = 70
+        start_y = 120
+        
+        curr_x = start_x
+        for i, h in enumerate(headers):
+            txt_surf = self.font_label.render(h, True, COLOR_TEXT_WHITE)
+            self.screen.blit(txt_surf, (curr_x, start_y))
+            curr_x += col_widths[i]
+
+        pygame.draw.line(self.screen, COLOR_BORDER_INNER, (start_x, start_y + 30), (start_x + 1140, start_y + 30), 2)
+
+        # Rows
+        row_y = start_y + 50
+        
+        if not hasattr(self, 'comparison_results') or not self.comparison_results:
+            txt = self.font_label.render("Vui lòng chạy 1 thuật toán rồi nhấn nút 'SO SÁNH CÁC THUẬT TOÁN' ở màn hình chính.", True, COLOR_TEXT_MUTED)
+            self.screen.blit(txt, (start_x, row_y))
+            return
+            
+        for run in self.comparison_results.values():
+            if row_y > 650:
+                break
+            
+            curr_x = start_x
+            
+            txt_surf = self.font_small.render(run["algo"], True, COLOR_TEXT_GOLD)
+            self.screen.blit(txt_surf, (curr_x, row_y))
+            curr_x += col_widths[0]
+            
+            txt_surf = self.font_small.render(run["time_c"], True, COLOR_TEXT_WHITE)
+            self.screen.blit(txt_surf, (curr_x, row_y))
+            curr_x += col_widths[1]
+            
+            txt_surf = self.font_small.render(run["space_c"], True, COLOR_TEXT_WHITE)
+            self.screen.blit(txt_surf, (curr_x, row_y))
+            curr_x += col_widths[2]
+            
+            txt_surf = self.font_small.render(str(run["path_len"]), True, COLOR_TEXT_WHITE)
+            self.screen.blit(txt_surf, (curr_x, row_y))
+            curr_x += col_widths[3]
+            
+            txt_surf = self.font_small.render(str(run["nodes"]), True, COLOR_TEXT_WHITE)
+            self.screen.blit(txt_surf, (curr_x, row_y))
+            curr_x += col_widths[4]
+            
+            txt_surf = self.font_small.render(f"{run['time']:.2f}", True, COLOR_TEXT_WHITE)
+            self.screen.blit(txt_surf, (curr_x, row_y))
+            curr_x += col_widths[5]
+            
+            status_color = COLOR_TEXT_GREEN if run["status"] == "Success" else COLOR_RED_ERROR
+            txt_surf = self.font_small.render(run["status"], True, status_color)
+            self.screen.blit(txt_surf, (curr_x, row_y))
+            
+            row_y += 50
 
 def run_app():
     app = PygameWaterJugSolver()

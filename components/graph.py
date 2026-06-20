@@ -248,10 +248,13 @@ def draw_graph_screen(app):
     render_shadow_text(screen, "RÊ CHUỘT VÀO NÚT TRẠNG THÁI ĐỂ XEM CHI TIẾT | KÉO CHUỘT ĐỂ CUỘN | CUỘN CHUỘT ĐỂ ZOOM", 
                        app.font_small, COLOR_TEXT_MUTED, (40, 672))
 
-    title_rect = pygame.Rect(20, 10, 990, 45)
+    title_rect = pygame.Rect(20, 10, 920, 45)
     draw_pixel_panel(screen, title_rect)
-    render_shadow_text(screen, f"CÂY TÌM KIẾM KHÔNG GIAN TRẠNG THÁI (Thuật toán: {algo_name})", 
+    render_shadow_text(screen, f"CÂY TÌM KIẾM TRẠNG THÁI", 
                        app.font_label, COLOR_TEXT_GOLD, (40, 22))
 
     app.btn_graph_back.draw(screen, app.font_label)
     app.btn_graph_fit.draw(screen, app.font_label)
+
+    if hasattr(app, 'graph_dropdown') and app.graph_dropdown:
+        app.graph_dropdown.draw(screen, app.font_label)
