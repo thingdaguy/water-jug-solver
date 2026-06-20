@@ -44,9 +44,9 @@ def get_node_card_surface(state, node_color, outline_color, outline_w, wave_fram
         
         # Draw tuple text coordinate at the bottom of the card
         lbl_txt = f"({lvls[0]},{lvls[1]},{lvls[2]})"
-        card_font = pygame.font.SysFont("Consolas", 32, bold=True)
+        card_font = pygame.font.SysFont("Arial", 42, bold=True)
         txt_surf = card_font.render(lbl_txt, True, COLOR_TEXT_WHITE)
-        shadow_surf = card_font.render(lbl_txt, True, (20, 20, 28))
+        shadow_surf = card_font.render(lbl_txt, True, (10, 10, 15))
         txt_rect = txt_surf.get_rect(center=(card_w // 2, max_h + 45))
         
         surf.blit(shadow_surf, (txt_rect.x + 3, txt_rect.y + 3))
@@ -184,14 +184,14 @@ def draw_graph_screen(app):
         outline_w = 2
         
         if state in path_states:
-            node_color = (39, 174, 96)
+            node_color = (30, 90, 60)
             outline_color = COLOR_TEXT_GOLD
         elif state in visited:
-            node_color = (41, 128, 185)
+            node_color = (35, 75, 120)
         elif state in frontier:
-            node_color = (230, 126, 34)
+            node_color = (130, 80, 40)
         else:
-            node_color = (127, 140, 141)
+            node_color = (60, 70, 80)
             
         if state == start_state:
             outline_color = COLOR_RED_ERROR
@@ -226,8 +226,8 @@ def draw_graph_screen(app):
         parent_str = f"Cha: ({','.join(map(str, parent_state.jugs))})" if parent_state else "None"
         
         # Adjust tooltip window size
-        tt_w = 320
-        tt_h = 95
+        tt_w = 340
+        tt_h = 105
         tt_x = mouse_pos[0] + 15
         tt_y = mouse_pos[1] + 15
         
@@ -238,9 +238,9 @@ def draw_graph_screen(app):
         tt_rect = pygame.Rect(tt_x, tt_y, tt_w, tt_h)
         draw_pixel_panel(screen, tt_rect, title="STATE INFO", is_raised=False)
         
-        screen.blit(app.font_small.render(state_str, True, COLOR_TEXT_GOLD), (tt_x + 15, tt_y + 20))
-        screen.blit(app.font_small.render(action_str, True, COLOR_TEXT_WHITE), (tt_x + 15, tt_y + 42))
-        screen.blit(app.font_small.render(parent_str, True, COLOR_TEXT_MUTED), (tt_x + 15, tt_y + 64))
+        screen.blit(app.font_label.render(state_str, True, COLOR_TEXT_GOLD), (tt_x + 15, tt_y + 20))
+        screen.blit(app.font_label.render(action_str, True, COLOR_TEXT_WHITE), (tt_x + 15, tt_y + 45))
+        screen.blit(app.font_label.render(parent_str, True, COLOR_TEXT_MUTED), (tt_x + 15, tt_y + 70))
 
     # 4. Draw overlays
     guide_rect = pygame.Rect(20, 660, 990, 45)
@@ -248,13 +248,13 @@ def draw_graph_screen(app):
     render_shadow_text(screen, "RÊ CHUỘT VÀO NÚT TRẠNG THÁI ĐỂ XEM CHI TIẾT | KÉO CHUỘT ĐỂ CUỘN | CUỘN CHUỘT ĐỂ ZOOM", 
                        app.font_small, COLOR_TEXT_MUTED, (40, 672))
 
-    title_rect = pygame.Rect(20, 10, 920, 45)
-    draw_pixel_panel(screen, title_rect)
-    render_shadow_text(screen, f"CÂY TÌM KIẾM TRẠNG THÁI", 
-                       app.font_label, COLOR_TEXT_GOLD, (40, 22))
+    if hasattr(app, 'graph_dropdown') and app.graph_dropdown:
+        app.graph_dropdown.draw(screen, app.font_label)
+    else:
+        title_rect = pygame.Rect(20, 10, 990, 45)
+        draw_pixel_panel(screen, title_rect)
+        render_shadow_text(screen, f"CÂY TÌM KIẾM KHÔNG GIAN TRẠNG THÁI (Thuật toán: {algo_name})", 
+                           app.font_label, COLOR_TEXT_GOLD, (40, 22))
 
     app.btn_graph_back.draw(screen, app.font_label)
     app.btn_graph_fit.draw(screen, app.font_label)
-
-    if hasattr(app, 'graph_dropdown') and app.graph_dropdown:
-        app.graph_dropdown.draw(screen, app.font_label)
