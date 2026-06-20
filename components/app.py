@@ -110,10 +110,10 @@ class PygameWaterJugSolver:
 
     def init_ui(self):
         # 1. Left Input panel
-        self.inc_a = Incrementer(20, 50, 240, "Dung tích bình A:", 1, 15, 8, lambda v: self.set_capacity(0, v))
-        self.inc_b = Incrementer(20, 130, 240, "Dung tích bình B:", 1, 15, 5, lambda v: self.set_capacity(1, v))
-        self.inc_c = Incrementer(20, 210, 240, "Dung tích bình C:", 1, 15, 3, lambda v: self.set_capacity(2, v))
-        self.inc_target = Incrementer(20, 290, 240, "Lượng nước đích:", 1, 15, 4, self.set_target)
+        self.inc_a = Incrementer(20, 50, 240, "Dung tích bình A:", 1, 10, 8, lambda v: self.set_capacity(0, v))
+        self.inc_b = Incrementer(20, 130, 240, "Dung tích bình B:", 1, 10, 5, lambda v: self.set_capacity(1, v))
+        self.inc_c = Incrementer(20, 210, 240, "Dung tích bình C:", 1, 10, 3, lambda v: self.set_capacity(2, v))
+        self.inc_target = Incrementer(20, 290, 240, "Lượng nước đích:", 1, 10, 4, self.set_target)
         
         self.btn_clear = Button(20, 380, 240, 40, "CLEAR INPUTS", self.clear_all_inputs)
 
@@ -482,9 +482,9 @@ class PygameWaterJugSolver:
                     self.anim_phase = 3
                     
             elif self.anim_phase == 3:
-                tgt_angle = 50.0 if src < dest else -50.0
+                tgt_angle = -50.0 if src < dest else 50.0
                 if abs(self.anim_angle - tgt_angle) > 1.5 * sp:
-                    self.anim_angle += (1.5 * sp) if src < dest else (-1.5 * sp)
+                    self.anim_angle += (-1.5 * sp) if src < dest else (1.5 * sp)
                 else:
                     self.anim_angle = tgt_angle
                     self.anim_phase = 4
@@ -531,7 +531,7 @@ class PygameWaterJugSolver:
                     
             elif self.anim_phase == 5:
                 if abs(self.anim_angle) > 1.5 * sp:
-                    self.anim_angle += (-1.5 * sp) if src < dest else (1.5 * sp)
+                    self.anim_angle += (1.5 * sp) if src < dest else (-1.5 * sp)
                 else:
                     self.anim_angle = 0.0
                     self.anim_phase = 6
@@ -687,7 +687,7 @@ class PygameWaterJugSolver:
             pygame.draw.rect(self.screen, COLOR_LIQUID_WATER, (ep["x"] - 2, ep["y"], 4, 15))
         for pp in self.pour_particles:
             t = pp["progress"]
-            arc_y = -35 * math.sin(math.pi * t)
+            arc_y = -15 * math.sin(math.pi * t)
             cur_x = int((1 - t) * pp["x"] + t * pp["tx"])
             cur_y = int((1 - t) * pp["y"] + t * pp["ty"] + arc_y)
             pygame.draw.rect(self.screen, COLOR_LIQUID_WATER, (cur_x - 3, cur_y - 3, 6, 6))
