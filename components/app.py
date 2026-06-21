@@ -340,7 +340,13 @@ class PygameWaterJugSolver:
         self.play_next_queue_step()
 
     def run_all_algorithms_for_comparison(self):
-        start_state = getattr(self, 'initial_start_state', State(tuple(self.levels), tuple(self.capacities)))
+        start_state = getattr(self, 
+            'initial_start_state', 
+            State(
+                tuple(self.levels), 
+                tuple(self.capacities)
+                )
+            )
         target = self.target
 
         self.log_box.add_log("Đang chạy ngầm tất cả thuật toán để so sánh...")
@@ -350,10 +356,14 @@ class PygameWaterJugSolver:
             "BFS": bfs_search,
             "DFS": dfs_search,
             "UCS": ucs_search,
-            "Greedy (Khoảng cách hiệu)": lambda s, t: greedy_search(s, t, heuristic_diff),
-            "Greedy (Mục tiêu ước lượng)": lambda s, t: greedy_search(s, t, heuristic_estimate),
-            "A* (Khoảng cách hiệu)": lambda s, t: a_star_search(s, t, heuristic_diff),
-            "A* (Mục tiêu ước lượng)": lambda s, t: a_star_search(s, t, heuristic_estimate)
+            "Greedy (Khoảng cách hiệu)": 
+                lambda s, t: greedy_search(s, t, heuristic_diff),
+            "Greedy (Mục tiêu ước lượng)": 
+                lambda s, t: greedy_search(s, t, heuristic_estimate),
+            "A* (Khoảng cách hiệu)": 
+                lambda s, t: a_star_search(s, t, heuristic_diff),
+            "A* (Mục tiêu ước lượng)": 
+                lambda s, t: a_star_search(s, t, heuristic_estimate)
         }
         
         self.comparison_results = {}
@@ -1048,7 +1058,15 @@ class PygameWaterJugSolver:
         draw_modern_panel(self.screen, table_rect, border_radius=12)
 
         # Headers
-        headers = ["Algorithm", "Time Complexity", "Space Complexity", "Path Length", "Nodes Explored", "Execution Time (ms)", "Status"]
+        headers = [
+            "Algorithm", 
+            "Time Complexity", 
+            "Space Complexity", 
+            "Path Length", 
+            "Nodes Explored", 
+            "Execution Time (ms)", 
+            "Status"
+            ]
         col_widths = [240, 160, 160, 100, 130, 160, 150]
         start_x = 70
         start_y = 120
@@ -1064,8 +1082,13 @@ class PygameWaterJugSolver:
         # Rows
         row_y = start_y + 50
         
+        WARNING_STRING= "Vui lòng chạy 1 thuật toán rồi nhấn nút 'SO SÁNH CÁC THUẬT TOÁN' ở màn hình chính."
         if not hasattr(self, 'comparison_results') or not self.comparison_results:
-            txt = self.font_label.render("Vui lòng chạy 1 thuật toán rồi nhấn nút 'SO SÁNH CÁC THUẬT TOÁN' ở màn hình chính.", True, COLOR_TEXT_MUTED)
+            txt = self.font_label.render(
+                WARNING_STRING, 
+                True, 
+                COLOR_TEXT_MUTED
+            )
             self.screen.blit(txt, (start_x, row_y))
             return
             
